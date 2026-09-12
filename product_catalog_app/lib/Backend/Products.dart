@@ -67,9 +67,12 @@ class Product {
 }
 
 class ProductService {
-  static Future<List<Product>> fetchProducts() async {
+  static Future<List<Product>> fetchProducts({
+    int limit = 20,
+    int skip = 0,
+  }) async {
     final response = await http.get(
-      Uri.parse('https://dummyjson.com/products'),
+      Uri.parse('https://dummyjson.com/products?limit=$limit&skip=$skip'),
     );
 
     if (response.statusCode == 200) {
@@ -94,6 +97,23 @@ class ProductService {
       return Product.fromJson(body as Map<String, dynamic>);
     } else {
       throw Exception('Failed to fetch product: ${response.statusCode}');
+    }
+  }
+
+  static Future<List<Product>> searchProductByName(String query) async {
+    final response = await http.get(
+      Uri.parse('https://dummyjson.com/products/search?q=$query'),
+    );
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      final productsJson = body['products'] as List<dynamic>;
+
+      return productsJson
+          .map((json) => Product.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } else {
+      throw Exception('Failed to search products: ${response.statusCode}');
     }
   }
 }

@@ -197,17 +197,6 @@ class _ProductDetailState extends State<ProductDetail> {
             product.description,
             style: const TextStyle(fontSize: 20.0),
           ),
-          if (product.discountPercentage > 0) ...[
-            const SizedBox(height: 8.0),
-            Text(
-              '${product.discountPercentage.toStringAsFixed(0)}% OFF',
-              style: const TextStyle(
-                fontSize: 14.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
-            ),
-          ],
           const SizedBox(height: 24.0),
           Text(
             'Reviews (${product.reviews.length})',

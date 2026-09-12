@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
 
-class TopBar extends StatelessWidget {
-  const TopBar({super.key});
+class TopBar extends StatefulWidget {
+  final ValueChanged<String> onSearchChanged;
+
+  const TopBar({super.key, required this.onSearchChanged});
+
+  @override
+  State<TopBar> createState() => _TopBarState();
+}
+
+class _TopBarState extends State<TopBar> {
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        // Closing the search box — clear the text and tell the
+        // parent to reset back to the normal product list.
+        _searchController.clear();
+        widget.onSearchChanged('');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,32 +43,35 @@ class TopBar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  'Product Catalog',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: _isSearching
+                    ? TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        onChanged: widget.onSearchChanged,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          hintText: 'Search products...',
+                          hintStyle: TextStyle(color: Colors.white70),
+                          border: InputBorder.none,
+                        ),
+                      )
+                    : const Text(
+                        'Product Catalog',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.search),
+                    icon: Icon(_isSearching ? Icons.close : Icons.search),
                     color: Colors.white,
-                    onPressed: () {
-                      // Handle search button press
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart),
-                    color: Colors.white,
-                    onPressed: () {
-                      // Handle shopping cart button press
-                    },
+                    onPressed: _toggleSearch,
                   ),
                 ],
               ),
