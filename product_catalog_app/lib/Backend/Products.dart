@@ -69,7 +69,7 @@ class Product {
 class ProductService {
   static Future<List<Product>> fetchProducts() async {
     final response = await http.get(
-      Uri.parse('https://dummyjson.com/products?limit=20&skip=0'),
+      Uri.parse('https://dummyjson.com/products'),
     );
 
     if (response.statusCode == 200) {

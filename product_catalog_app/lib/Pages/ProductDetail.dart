@@ -15,10 +15,19 @@ class _ProductDetailState extends State<ProductDetail> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  final PageController _pageController = PageController();
+  int _currentImageIndex = 0;
+
   @override
   void initState() {
     super.initState();
     _loadProduct();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProduct() async {
@@ -47,6 +56,7 @@ class _ProductDetailState extends State<ProductDetail> {
       appBar: AppBar(
         title: const Text('Product Detail'),
         backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       body: _buildBody(),
     );
@@ -80,24 +90,86 @@ class _ProductDetailState extends State<ProductDetail> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Horizontally scrollable image gallery
+          // only show one image at a time
           SizedBox(
             height: 220.0,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: product.images.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Image.network(
-                    product.images[index],
-                    width: 220.0,
-                    fit: BoxFit.cover,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PageView.builder(
+                  controller: _pageController,
+                  itemCount: product.images.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentImageIndex = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Center(
+                      child: Image.network(
+                        product.images[index],
+                        fit: BoxFit.contain,
+                      ),
+                    );
+                  },
+                ),
+
+                // Left arrow — hidden if only 1 image, or already on first image
+                if (product.images.length > 1 && _currentImageIndex > 0)
+                  Positioned(
+                    left: 0,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.black54),
+                      onPressed: () {
+                        _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
+
+                // Right arrow — hidden if only 1 image, or already on last image
+                if (product.images.length > 1 &&
+                    _currentImageIndex < product.images.length - 1)
+                  Positioned(
+                    right: 0,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_forward_ios, color: Colors.black54),
+                      onPressed: () {
+                        _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
           ),
+
+          // Dot indicators showing position in the gallery
+          if (product.images.length > 1) ...[
+            const SizedBox(height: 8.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                product.images.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 3.0),
+                  width: 8.0,
+                  height: 8.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: index == _currentImageIndex
+                        ? Colors.blue
+                        : Colors.grey.shade300,
+                  ),
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16.0),
           Text(
             product.title,
